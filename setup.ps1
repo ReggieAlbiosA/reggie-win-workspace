@@ -6,9 +6,9 @@ $ErrorActionPreference = "Stop"
 # Configuration
 $taskName = "PersonalBrowserTabs"
 $taskPath = "\REGGIE_WORKFLOW_TASKS\"
-$batFileName = "personal-brows-tabs.bat"
+$batFileName = "reggie-workflow.bat"
 $batDestination = "$env:USERPROFILE\Desktop\$batFileName"
-$repoUrl = "https://raw.githubusercontent.com/yourusername/yourrepo/main/$batFileName"
+$repoUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/main/$batFileName"
 
 Write-Host "Setting up Personal Browser Tabs automation..." -ForegroundColor Cyan
 
