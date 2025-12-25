@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 # Configuration
 $taskName = "PersonalBrowserTabs"
 $taskPath = "\REGGIE_WORKFLOW_TASKS\"
-$batFileName = "personal-brows-tabs.bat"
+$batFileName = "reggie-workspace.bat"  # ← FIXED
 $batDestination = "$env:USERPROFILE\Desktop\$batFileName"
 $repoUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/$batFileName"
 
