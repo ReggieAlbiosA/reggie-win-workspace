@@ -1,14 +1,14 @@
 # setup.ps1
-# Run with: irm https://raw.githubusercontent.com/yourusername/yourrepo/main/setup.ps1 | iex
+# Run with: irm https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/setup.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
 # Configuration
 $taskName = "PersonalBrowserTabs"
 $taskPath = "\REGGIE_WORKFLOW_TASKS\"
-$batFileName = "reggie-workflow.bat"
+$batFileName = "personal-brows-tabs.bat"
 $batDestination = "$env:USERPROFILE\Desktop\$batFileName"
-$repoUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/main/$batFileName"
+$repoUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/$batFileName"
 
 Write-Host "Setting up Personal Browser Tabs automation..." -ForegroundColor Cyan
 
@@ -31,6 +31,14 @@ try {
     Write-Host "✓ Task folder created" -ForegroundColor Green
 }
 
+# Check if task already exists
+$existingTask = Get-ScheduledTask -TaskName $taskName -TaskPath $taskPath -ErrorAction SilentlyContinue
+
+if ($existingTask) {
+    Write-Host "Task already exists. Updating..." -ForegroundColor Yellow
+    Unregister-ScheduledTask -TaskName $taskName -TaskPath $taskPath -Confirm:$false
+}
+
 # Create scheduled task
 Write-Host "Creating scheduled task..." -ForegroundColor Yellow
 
@@ -43,11 +51,4 @@ Register-ScheduledTask -TaskName $taskName -TaskPath $taskPath -Action $action -
 
 Write-Host "✓ Scheduled task created at $taskPath$taskName" -ForegroundColor Green
 Write-Host "`nSetup complete! Browser tabs will open on next login." -ForegroundColor Cyan
-```
-
-## GitHub Repo Structure
-```
-your-repo/
-├── personal-brows-tabs.bat
-├── setup.ps1
-└── README.md
+Write-Host "Test it now by running the task manually in Task Scheduler." -ForegroundColor Gray
