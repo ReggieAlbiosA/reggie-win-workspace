@@ -2,7 +2,7 @@
 
 Open PowerShell as **Administrator** and run:
 ```powershell
-irm https://raw.githubusercontent.com/yourusername/yourrepo/main/setup.ps1 | iex
+irm https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/main/setup.ps1 | iex
 ```
 
 That's it! Your browser tabs will automatically open on next login.
@@ -20,12 +20,12 @@ If you prefer manual setup:
 
 1. **Download the batch file:**
 ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/yourusername/yourrepo/main/personal-brows-tabs.bat" -OutFile "$env:USERPROFILE\Desktop\personal-brows-tabs.bat"
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/main/reggie-workflow.bat" -OutFile "$env:USERPROFILE\Desktop\reggie-workflow.bat"
 ```
 
 2. **Run the setup script:**
 ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/yourusername/yourrepo/main/setup.ps1" -OutFile "setup.ps1"
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/main/setup.ps1" -OutFile "setup.ps1"
    .\setup.ps1
    Remove-Item setup.ps1
 ```
@@ -51,7 +51,7 @@ Replace `msedge` with:
 
 Just run the installation command again:
 ```powershell
-irm https://raw.githubusercontent.com/yourusername/yourrepo/main/setup.ps1 | iex
+irm https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/main/setup.ps1 | iex
 ```
 
 ## 🗑️ Uninstallation
