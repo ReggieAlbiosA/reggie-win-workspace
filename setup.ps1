@@ -19,7 +19,7 @@ function Prompt-Install {
 Write-Host "`n=== Checking Dependencies ===" -ForegroundColor Cyan
 
 # --- Check Node.js ---
-Write-Host "`n[1/6] Node.js" -ForegroundColor White
+Write-Host "`n[1/7] Node.js" -ForegroundColor White
 if (Test-CommandExists "node") {
     $nodeVersion = node --version
     Write-Host "  + Already installed: $nodeVersion" -ForegroundColor Green
@@ -41,7 +41,7 @@ if (Test-CommandExists "node") {
 }
 
 # --- Check Git ---
-Write-Host "`n[2/6] Git" -ForegroundColor White
+Write-Host "`n[2/7] Git" -ForegroundColor White
 if (Test-CommandExists "git") {
     $gitVersion = git --version
     Write-Host "  + Already installed: $gitVersion" -ForegroundColor Green
@@ -63,7 +63,7 @@ if (Test-CommandExists "git") {
 }
 
 # --- Check pnpm ---
-Write-Host "`n[3/6] pnpm" -ForegroundColor White
+Write-Host "`n[3/7] pnpm" -ForegroundColor White
 if (Test-CommandExists "pnpm") {
     $pnpmVersion = pnpm --version
     Write-Host "  + Already installed: v$pnpmVersion" -ForegroundColor Green
@@ -87,7 +87,7 @@ if (Test-CommandExists "pnpm") {
 }
 
 # --- Check VS Code ---
-Write-Host "`n[4/6] VS Code" -ForegroundColor White
+Write-Host "`n[4/7] VS Code" -ForegroundColor White
 if (Test-CommandExists "code") {
     $codeVersion = code --version | Select-Object -First 1
     Write-Host "  + Already installed: v$codeVersion" -ForegroundColor Green
@@ -110,7 +110,7 @@ if (Test-CommandExists "code") {
 }
 
 # --- Check Cursor ---
-Write-Host "`n[5/6] Cursor" -ForegroundColor White
+Write-Host "`n[5/7] Cursor" -ForegroundColor White
 if (Test-CommandExists "cursor") {
     Write-Host "  + Already installed" -ForegroundColor Green
 } else {
@@ -131,7 +131,7 @@ if (Test-CommandExists "cursor") {
 }
 
 # --- Check Google Antigravity ---
-Write-Host "`n[6/6] Google Antigravity" -ForegroundColor White
+Write-Host "`n[6/7] Google Antigravity" -ForegroundColor White
 if (Test-CommandExists "antigravity") {
     Write-Host "  + Already installed" -ForegroundColor Green
 } else {
@@ -145,6 +145,34 @@ if (Test-CommandExists "antigravity") {
             Write-Host "  + Installed" -ForegroundColor Green
         } else {
             Write-Host "  ! Installed. Restart terminal to use antigravity." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "  > Skipped" -ForegroundColor Gray
+    }
+}
+
+# --- Claude Code Setup (Modular) ---
+Write-Host "`n[7/7] Claude Code" -ForegroundColor White
+if (Test-CommandExists "claude") {
+    $claudeVersion = claude --version 2>$null
+    Write-Host "  + Already installed: $claudeVersion" -ForegroundColor Green
+    Write-Host "  i Run 'claude-code-setup.ps1' separately to configure MCP servers" -ForegroundColor Gray
+} else {
+    Write-Host "  - Not installed" -ForegroundColor Yellow
+    if (Prompt-Install "Claude Code (includes MCP servers setup)") {
+        Write-Host "  > Running Claude Code setup..." -ForegroundColor Cyan
+
+        # Determine script location (local or remote)
+        $claudeSetupScript = "$PSScriptRoot\claude-code-setup.ps1"
+
+        if (Test-Path $claudeSetupScript) {
+            # Local: dot-source the script
+            . $claudeSetupScript
+        } else {
+            # Remote: download and execute from GitHub
+            $claudeSetupUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/claude-code-setup.ps1"
+            Write-Host "  > Downloading claude-code-setup.ps1..." -ForegroundColor Cyan
+            Invoke-WebRequest -Uri $claudeSetupUrl -UseBasicParsing | Invoke-Expression
         }
     } else {
         Write-Host "  > Skipped" -ForegroundColor Gray
