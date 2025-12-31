@@ -19,7 +19,7 @@ function Prompt-Install {
 Write-Host "`n=== Checking Dependencies ===" -ForegroundColor Cyan
 
 # --- Check Node.js ---
-Write-Host "`n[1/7] Node.js" -ForegroundColor White
+Write-Host "`n[1/6] Node.js" -ForegroundColor White
 if (Test-CommandExists "node") {
     $nodeVersion = node --version
     Write-Host "  + Already installed: $nodeVersion" -ForegroundColor Green
@@ -41,7 +41,7 @@ if (Test-CommandExists "node") {
 }
 
 # --- Check Git ---
-Write-Host "`n[2/7] Git" -ForegroundColor White
+Write-Host "`n[2/6] Git" -ForegroundColor White
 if (Test-CommandExists "git") {
     $gitVersion = git --version
     Write-Host "  + Already installed: $gitVersion" -ForegroundColor Green
@@ -63,7 +63,7 @@ if (Test-CommandExists "git") {
 }
 
 # --- Check pnpm ---
-Write-Host "`n[3/7] pnpm" -ForegroundColor White
+Write-Host "`n[3/6] pnpm" -ForegroundColor White
 if (Test-CommandExists "pnpm") {
     $pnpmVersion = pnpm --version
     Write-Host "  + Already installed: v$pnpmVersion" -ForegroundColor Green
@@ -87,7 +87,7 @@ if (Test-CommandExists "pnpm") {
 }
 
 # --- Check VS Code ---
-Write-Host "`n[4/7] VS Code" -ForegroundColor White
+Write-Host "`n[4/6] VS Code" -ForegroundColor White
 if (Test-CommandExists "code") {
     $codeVersion = code --version | Select-Object -First 1
     Write-Host "  + Already installed: v$codeVersion" -ForegroundColor Green
@@ -110,7 +110,7 @@ if (Test-CommandExists "code") {
 }
 
 # --- Check Cursor ---
-Write-Host "`n[5/7] Cursor" -ForegroundColor White
+Write-Host "`n[5/6] Cursor" -ForegroundColor White
 if (Test-CommandExists "cursor") {
     Write-Host "  + Already installed" -ForegroundColor Green
 } else {
@@ -131,7 +131,7 @@ if (Test-CommandExists "cursor") {
 }
 
 # --- Check Google Antigravity ---
-Write-Host "`n[6/7] Google Antigravity" -ForegroundColor White
+Write-Host "`n[6/6] Google Antigravity" -ForegroundColor White
 if (Test-CommandExists "antigravity") {
     Write-Host "  + Already installed" -ForegroundColor Green
 } else {
@@ -151,80 +151,20 @@ if (Test-CommandExists "antigravity") {
     }
 }
 
-# --- Claude Code Setup (Modular) ---
-Write-Host "`n[7/7] Claude Code" -ForegroundColor White
-if (Test-CommandExists "claude") {
-    $claudeVersion = claude --version 2>$null
-    Write-Host "  + Already installed: $claudeVersion" -ForegroundColor Green
-    Write-Host "  i Run 'claude-code-setup.ps1' separately to configure MCP servers" -ForegroundColor Gray
+Write-Host "`n=== Setting up Workspace Launcher ===" -ForegroundColor Cyan
+
+# Determine script location (local or remote)
+$launcherSetupScript = "$PSScriptRoot\logon-launch-workspace.ps1"
+
+if (Test-Path $launcherSetupScript) {
+    # Local: dot-source the script
+    . $launcherSetupScript
 } else {
-    Write-Host "  - Not installed" -ForegroundColor Yellow
-    if (Prompt-Install "Claude Code (includes MCP servers setup)") {
-        Write-Host "  > Running Claude Code setup..." -ForegroundColor Cyan
-
-        # Determine script location (local or remote)
-        $claudeSetupScript = "$PSScriptRoot\claude-code-setup.ps1"
-
-        if (Test-Path $claudeSetupScript) {
-            # Local: dot-source the script
-            . $claudeSetupScript
-        } else {
-            # Remote: download and execute from GitHub
-            $claudeSetupUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/claude-code-setup.ps1"
-            Write-Host "  > Downloading claude-code-setup.ps1..." -ForegroundColor Cyan
-            Invoke-WebRequest -Uri $claudeSetupUrl -UseBasicParsing | Invoke-Expression
-        }
-    } else {
-        Write-Host "  > Skipped" -ForegroundColor Gray
-    }
+    # Remote: download and execute from GitHub
+    $launcherSetupUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/logon-launch-workspace.ps1"
+    Write-Host "  > Downloading logon-launch-workspace.ps1..." -ForegroundColor Cyan
+    Invoke-WebRequest -Uri $launcherSetupUrl -UseBasicParsing | Invoke-Expression
 }
-
-Write-Host "`n=== Setting up Workspace ===" -ForegroundColor Cyan
-
-# Configuration
-$batFileName = "reggie-workspace.bat"
-$batDestination = "$env:USERPROFILE\Desktop\$batFileName"
-$repoUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/$batFileName"
-$taskName = "ReggieWorkspace"
-
-Write-Host "`nSetting up Reggie Workspace automation..." -ForegroundColor Cyan
-
-# Download the .bat file
-Write-Host "Downloading $batFileName..." -ForegroundColor Yellow
-Invoke-WebRequest -Uri $repoUrl -OutFile $batDestination
-Write-Host "  + Downloaded to $batDestination" -ForegroundColor Green
-
-# Remove old startup shortcut if it exists (cleanup from previous setup method)
-$startupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-$shortcutPath = "$startupFolder\ReggieWorkspace.lnk"
-if (Test-Path $shortcutPath) {
-    Remove-Item $shortcutPath -Force
-    Write-Host "  + Removed old startup shortcut" -ForegroundColor Yellow
-}
-
-# Create scheduled task to run at logon
-Write-Host "Setting up Task Scheduler task..." -ForegroundColor Yellow
-
-# Remove existing task if it exists
-$existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-if ($existingTask) {
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-    Write-Host "  + Removed existing scheduled task" -ForegroundColor Yellow
-}
-
-# Create the scheduled task action
-$action = New-ScheduledTaskAction -Execute $batDestination -WorkingDirectory (Split-Path $batDestination -Parent)
-
-# Create the trigger - run at user logon
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-
-# Create task settings
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
-
-# Register the scheduled task (no admin required for user-level task)
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Reggie Workspace - Opens browser tabs and apps on login" | Out-Null
-
-Write-Host "  + Scheduled task created" -ForegroundColor Green
 
 # Setup PowerShell Profile with aliases
 Write-Host "`nSetting up PowerShell profile aliases..." -ForegroundColor Yellow
@@ -315,8 +255,68 @@ if ($existingContent -match "(?s)$([regex]::Escape($startMarker)).*?$([regex]::E
 
 Set-Content -Path $PROFILE -Value $newContent -Force
 
-Write-Host "`n=== Setup Complete ===" -ForegroundColor Cyan
+Write-Host "`n=== Default Setup Complete ===" -ForegroundColor Cyan
+Write-Host "  + Dependencies checked/installed" -ForegroundColor Green
 Write-Host "  + Scheduled task created (runs at logon via Task Scheduler)" -ForegroundColor Green
 Write-Host "  + PowerShell aliases configured (restart terminal to use)" -ForegroundColor Green
-Write-Host "`nTo test now, run: $batDestination" -ForegroundColor Gray
-Write-Host "To manage the task, open Task Scheduler and look for '$taskName'" -ForegroundColor Gray
+
+# ============================================
+# Optional Modules Section
+# ============================================
+Write-Host "`n=== Optional Modules ===" -ForegroundColor Magenta
+
+# --- [1/2] Claude Code Setup ---
+Write-Host "`n[1/2] Claude Code Setup" -ForegroundColor White
+if (Test-CommandExists "claude") {
+    $claudeVersion = claude --version 2>$null
+    Write-Host "  + Already installed: $claudeVersion" -ForegroundColor Green
+    $response = Read-Host "  > Reconfigure? (y/n)"
+} else {
+    Write-Host "  - Not installed" -ForegroundColor Yellow
+    $response = Read-Host "  > Install? (y/n)"
+}
+
+if ($response -match '^[Yy]') {
+    Write-Host "  > Running Claude Code setup..." -ForegroundColor Cyan
+    $claudeSetupScript = "$PSScriptRoot\claude-code-setup.ps1"
+
+    if (Test-Path $claudeSetupScript) {
+        . $claudeSetupScript
+    } else {
+        $claudeSetupUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/claude-code-setup.ps1"
+        Write-Host "  > Downloading claude-code-setup.ps1..." -ForegroundColor Cyan
+        Invoke-WebRequest -Uri $claudeSetupUrl -UseBasicParsing | Invoke-Expression
+    }
+} else {
+    Write-Host "  > Skipped" -ForegroundColor Gray
+}
+
+# --- [2/2] Git Identity Manager ---
+Write-Host "`n[2/2] Git Identity Manager" -ForegroundColor White
+$gitIdentitiesFile = "$env:USERPROFILE\.git-identities"
+if (Test-Path $gitIdentitiesFile) {
+    $identityCount = (Get-Content $gitIdentitiesFile).Count
+    Write-Host "  + Configured ($identityCount identities)" -ForegroundColor Green
+    $response = Read-Host "  > Reconfigure? (y/n)"
+} else {
+    Write-Host "  - Not configured" -ForegroundColor Yellow
+    $response = Read-Host "  > Install? (y/n)"
+}
+
+if ($response -match '^[Yy]') {
+    Write-Host "  > Running Git Identity setup..." -ForegroundColor Cyan
+    $gitIdentityScript = "$PSScriptRoot\git-identity-setup.ps1"
+
+    if (Test-Path $gitIdentityScript) {
+        . $gitIdentityScript
+    } else {
+        $gitIdentityUrl = "https://raw.githubusercontent.com/blueivy828/reggie-win-workspace/refs/heads/main/git-identity-setup.ps1"
+        Write-Host "  > Downloading git-identity-setup.ps1..." -ForegroundColor Cyan
+        Invoke-WebRequest -Uri $gitIdentityUrl -UseBasicParsing | Invoke-Expression
+    }
+} else {
+    Write-Host "  > Skipped" -ForegroundColor Gray
+}
+
+Write-Host "`n=== All Setup Complete ===" -ForegroundColor Green
+Write-Host "Restart your terminal for all changes to take effect." -ForegroundColor Yellow
